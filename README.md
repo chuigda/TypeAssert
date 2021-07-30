@@ -44,7 +44,7 @@ typeAssert(null, assertion)
 
 // nullable shorthand for simple types
 typeAssert(114, 'number?')
-typeAssert(null, 'number?)
+typeAssert(null, 'number?')
 
 // nested situation
 const assertion = {
