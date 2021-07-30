@@ -7,7 +7,7 @@ const { typeAssert } = require('./typeAssert')
 
 // simple types
 typeAssert(1, 'number')
-typeAssert(2, 'string')
+typeAssert('2', 'string')
 
 // object
 typeAssert({ x: 1, y: 3 }, 'object')
