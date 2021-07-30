@@ -145,21 +145,30 @@
         return NullableType
     }())
 
-    Object.prototype.orNull = function () {
-        if (this.constructor === NullableType.prototype.constructor) {
-            typeAssertError('<onbuild> Object.prototype.orNull', 'trying to nest nullable modification')
+    Object.defineProperty(Object.prototype, 'orNull', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: function () {
+            if (this.constructor === NullableType.prototype.constructor) {
+                typeAssertError('<onbuild> Object.prototype.orNull', 'trying to nest nullable modification')
+            }
+            return new NullableType(this)
         }
-        return new NullableType(this)
-    }
+    })
 
-    String.prototype.orNull = function () {
-        if (`${this}` === TypeStrings.Undefined) {
-            typeAssertError('<onbuild> String.prototype.orNull', '"undefined" type cannot be nullable')
-        } else if (`${this}`.endsWith('?')) {
-            typeAssertError('<onbuild> String.prototype.orNull', 'trying to nest nullable modification')
+    Object.defineProperty(String.prototype, 'orNull', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: function () {
+            if (`${this}` === TypeStrings.Undefined) {
+                typeAssertError('<onbuild> String.prototype.orNull', '"undefined" type cannot be nullable')
+            } else if (`${this}`.endsWith('?')) {
+                typeAssertError('<onbuild> String.prototype.orNull', 'trying to nest nullable modification')
+            }
         }
-        return `${this}?`
-    }
+    })
 
     const SumType = (function () {
         function SumType(types) {
@@ -168,22 +177,37 @@
         return SumType
     }())
 
-    SumType.prototype.sumWith = function (that) {
-        if (that.constructor === SumType.prototype.constructor) {
-            this.types = this.types.concat(that.types)
-        } else {
-            this.types.push(that)
+    Object.defineProperty(SumType.prototype, 'sumWith', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: function (that) {
+            if (that.constructor === SumType.prototype.constructor) {
+                this.types = this.types.concat(that.types)
+            } else {
+                this.types.push(that)
+            }
+            return this
+        }    
+    })
+
+    Object.defineProperty(Object.prototype, 'sumWith', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: function (that) {
+            return (new SumType([this])).sumWith(that)
         }
-        return this
-    }
+    })
 
-    Object.prototype.sumWith = function (that) {
-        return (new SumType([this])).sumWith(that)
-    }
-
-    String.prototype.sumWith = function (that) {
-        return (new SumType([`${this}`])).sumWith(that)
-    }
+    Object.defineProperty(String.prototype, 'sumWith', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: function (that) {
+            return (new SumType([`${this}`])).sumWith(that)
+        }
+    })
 
     return {
         TypeStrings, typeAssert, SumType
