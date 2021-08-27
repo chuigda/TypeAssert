@@ -3,7 +3,8 @@ Minimal JavaScript type assertions
 
 ## Basic usage
 ```javascript
-const { typeAssert } = require('./typeAssert')
+// or you use import if use ESM
+const { typeAssert } = require('./typeAssert.cjs')
 
 // simple types
 typeAssert(1, 'number')
@@ -78,4 +79,7 @@ typeAssert({
         }
     ]
 }, assertion)
+
+// chained situation
+typeAssert(5, 'number'.chainWith(x => x > 0 ? true : 'no negative numbers'))
 ```
