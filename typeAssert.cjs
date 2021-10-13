@@ -150,32 +150,6 @@ const NullableType = (function () {
   return NullableType
 }())
 
-Object.defineProperty(Object.prototype, 'orNull', {
-  enumerable: false,
-  configurable: false,
-  writable: false,
-  value() {
-    if (this.constructor === NullableType.prototype.constructor) {
-      typeAssertError('<onbuild> Object.prototype.orNull', 'trying to nest nullable modification')
-    }
-    return new NullableType(this)
-  }
-})
-
-Object.defineProperty(String.prototype, 'orNull', {
-  enumerable: false,
-  configurable: false,
-  writable: false,
-  value() {
-    if (`${this}` === TypeStrings.Undefined) {
-      typeAssertError('<onbuild> String.prototype.orNull', '"undefined" type cannot be nullable')
-    } else if (`${this}`.endsWith('?')) {
-      typeAssertError('<onbuild> String.prototype.orNull', 'trying to nest nullable modification')
-    }
-    return `${this}?`
-  }
-})
-
 const SumType = (function () {
   function SumType(types) {
     this.types = types
@@ -183,37 +157,6 @@ const SumType = (function () {
 
   return SumType
 }())
-
-Object.defineProperty(SumType.prototype, 'sumWith', {
-  enumerable: false,
-  configurable: false,
-  writable: false,
-  value(that) {
-    if (that.constructor === SumType.prototype.constructor) {
-      return new SumType([...this.types, ...that.types])
-    } else {
-      return new SumType([...this.types, that])
-    }
-  }
-})
-
-Object.defineProperty(Object.prototype, 'sumWith', {
-  enumerable: false,
-  configurable: false,
-  writable: false,
-  value(that) {
-    return (new SumType([this])).sumWith(that)
-  }
-})
-
-Object.defineProperty(String.prototype, 'sumWith', {
-  enumerable: false,
-  configurable: false,
-  writable: false,
-  value(that) {
-    return (new SumType([`${this}`])).sumWith(that)
-  }
-})
 
 const ChainType = (function () {
   function ChainType(types) {
@@ -223,32 +166,92 @@ const ChainType = (function () {
   return ChainType
 }())
 
-Object.defineProperty(ChainType.prototype, 'chainWith', {
-  enumerable: false,
-  configurable: false,
-  writable: false,
-  value(that) {
-    if (that.constructor === ChainType.prototype.constructor) {
-      return new ChainType([...this.types, ...that.types])
-    } else {
-      return new ChainType([...this.types, that])
+const enableChainAPI = () => {
+  Object.defineProperty(Object.prototype, 'orNull', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value() {
+      if (this.constructor === NullableType.prototype.constructor) {
+        typeAssertError('<onbuild> Object.prototype.orNull', 'trying to nest nullable modification')
+      }
+      return new NullableType(this)
     }
-  }
-})
+  })
 
-Object.defineProperty(Object.prototype, 'chainWith', {
-  enumerable: false,
-  configurable: false,
-  writable: false,
-  value(that) {
-    return (new ChainType([this])).chainWith(that)
-  }
-})
+  Object.defineProperty(String.prototype, 'orNull', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value() {
+      if (`${this}` === TypeStrings.Undefined) {
+        typeAssertError('<onbuild> String.prototype.orNull', '"undefined" type cannot be nullable')
+      } else if (`${this}`.endsWith('?')) {
+        typeAssertError('<onbuild> String.prototype.orNull', 'trying to nest nullable modification')
+      }
+      return `${this}?`
+    }
+  })
+
+  Object.defineProperty(SumType.prototype, 'sumWith', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value(that) {
+      if (that.constructor === SumType.prototype.constructor) {
+        return new SumType([...this.types, ...that.types])
+      } else {
+        return new SumType([...this.types, that])
+      }
+    }
+  })
+
+  Object.defineProperty(Object.prototype, 'sumWith', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value(that) {
+      return (new SumType([this])).sumWith(that)
+    }
+  })
+
+  Object.defineProperty(String.prototype, 'sumWith', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value(that) {
+      return (new SumType([`${this}`])).sumWith(that)
+    }
+  })
+
+  Object.defineProperty(ChainType.prototype, 'chainWith', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value(that) {
+      if (that.constructor === ChainType.prototype.constructor) {
+        return new ChainType([...this.types, ...that.types])
+      } else {
+        return new ChainType([...this.types, that])
+      }
+    }
+  })
+
+  Object.defineProperty(Object.prototype, 'chainWith', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value(that) {
+      return (new ChainType([this])).chainWith(that)
+    }
+  })
+}
 
 module.exports = {
   TypeStrings,
   typeAssert,
   NullableType,
   SumType,
-  ChainType
+  ChainType,
+  enableChainAPI
 }
