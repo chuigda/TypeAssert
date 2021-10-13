@@ -166,8 +166,19 @@ const ChainType = (function () {
   return ChainType
 }())
 
-const enableChainAPI = () => {
-  Object.defineProperty(Object.prototype, 'orNull', {
+const enableChainAPI = methodNames => {
+  let orNullName = 'orNull'
+  let sumWithName = 'sumWith'
+  let chainWithName = 'chainWith'
+
+  if (methodNames !== null && methodNames !== undefined) {
+    const { orNull, sumWith, chainWith } = methodNames
+    orNullName = orNull
+    sumWithName = sumWith
+    chainWithName = chainWith
+  }
+
+  Object.defineProperty(Object.prototype, orNullName, {
     enumerable: false,
     configurable: false,
     writable: false,
@@ -179,7 +190,7 @@ const enableChainAPI = () => {
     }
   })
 
-  Object.defineProperty(String.prototype, 'orNull', {
+  Object.defineProperty(String.prototype, orNullName, {
     enumerable: false,
     configurable: false,
     writable: false,
@@ -193,7 +204,7 @@ const enableChainAPI = () => {
     }
   })
 
-  Object.defineProperty(SumType.prototype, 'sumWith', {
+  Object.defineProperty(SumType.prototype, sumWithName, {
     enumerable: false,
     configurable: false,
     writable: false,
@@ -206,7 +217,7 @@ const enableChainAPI = () => {
     }
   })
 
-  Object.defineProperty(Object.prototype, 'sumWith', {
+  Object.defineProperty(Object.prototype, sumWithName, {
     enumerable: false,
     configurable: false,
     writable: false,
@@ -215,7 +226,7 @@ const enableChainAPI = () => {
     }
   })
 
-  Object.defineProperty(String.prototype, 'sumWith', {
+  Object.defineProperty(String.prototype, sumWithName, {
     enumerable: false,
     configurable: false,
     writable: false,
@@ -224,7 +235,7 @@ const enableChainAPI = () => {
     }
   })
 
-  Object.defineProperty(ChainType.prototype, 'chainWith', {
+  Object.defineProperty(ChainType.prototype, chainWithName, {
     enumerable: false,
     configurable: false,
     writable: false,
@@ -237,7 +248,7 @@ const enableChainAPI = () => {
     }
   })
 
-  Object.defineProperty(Object.prototype, 'chainWith', {
+  Object.defineProperty(Object.prototype, chainWithName, {
     enumerable: false,
     configurable: false,
     writable: false,
