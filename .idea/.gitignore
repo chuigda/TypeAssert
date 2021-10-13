@@ -1,0 +1,11 @@
+# 默认忽略的文件
+/shelf/
+/workspace.xml
+# 基于编辑器的 HTTP 客户端请求
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+
+# 傻逼 IDEA 能不能不要老是问我要不要添加你那个破 .idea，要不要添加你没点 AC 数吗，CNM
+.idea/
