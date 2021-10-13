@@ -1,0 +1,27 @@
+{
+  "name": "typeassert",
+  "version": "0.3.0",
+  "description": "A light weight type assertion \"framework\"?",
+  "type": "module",
+  "main": "",
+  "scripts": {
+    "test-esm": "node test.js",
+    "test-cjs": "node test.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chuigda/typeAssert.git"
+  },
+  "keywords": [
+    "type",
+    "assertion",
+    "commonjs",
+    "esmodule"
+  ],
+  "author": "Chuigda",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chuigda/typeAssert/issues"
+  },
+  "homepage": "https://github.com/chuigda/typeAssert#readme"
+}

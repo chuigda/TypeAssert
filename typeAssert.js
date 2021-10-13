@@ -23,29 +23,38 @@ const removeTail = (srcText) => {
   return [srcText, false]
 }
 
-const typeAssertError = (path, message) => {
+let globalPreventErr = false
+
+export const preventErrTrace = prevent => {
+  globalPreventErr = prevent
+}
+
+const typeAssertError = (path, message, preventErr) => {
   const errMsg = `Type assertion failed: "${path}": ${message}`
-  console.trace(errMsg)
+  if (!preventErr && !globalPreventErr) {
+    console.trace(errMsg)
+  }
   throw errMsg
 }
 
-const assertEquals = (path, expected, got) => {
+const assertEquals = (path, expected, got, preventErr) => {
   if (expected !== got) {
-    typeAssertError(path, `expected value "${expected}", got "${got}"`)
+    typeAssertError(path, `expected value "${expected}", got "${got}"`, preventErr)
   }
 }
 
-const assertTypeEqImpl = (path, expected, got) => {
+const assertTypeEqImpl = (path, expected, got, preventErr) => {
   if (expected !== got) {
-    typeAssertError(path, `expected type "${expected}", got "${got}"`)
+    typeAssertError(path, `expected type "${expected}", got "${got}"`, preventErr)
   }
 }
 
-const assertTypeEqImpl2 = (path, expectedCtor, gotCtor, expected) => {
+const assertTypeEqImpl2 = (path, expectedCtor, gotCtor, expected, preventErr) => {
   if (expectedCtor !== gotCtor) {
     typeAssertError(
       path,
-      `expected type "${expected}", checking using ctor "${expectedCtor.name}", got "${gotCtor.name}"`
+      `expected type "${expected}", checking using ctor "${expectedCtor.name}", got "${gotCtor.name}"`,
+      preventErr
     )
   }
 }
@@ -58,98 +67,98 @@ const formatSumTypeError = (errors) => {
   return ret
 }
 
-const typeAssertImpl = (path, object, assertion) => {
+const typeAssertImpl = (path, object, assertion, preventErr) => {
   const assertionType = typeof assertion
   if (assertion === null) {
     if (object !== null) {
-      typeAssertError(path, `expected "null" value, got "${typeof object}"`)
+      typeAssertError(path, `expected "null" value, got "${typeof object}"`, preventErr)
     }
   } else if (assertionType === TypeStrings.String) {
     const [type, nullable] = removeTail(assertion)
     if (nullable) {
       if (type === TypeStrings.Undefined) {
-        typeAssertError(path, '"undefined" type cannot be nullable')
+        typeAssertError(path, '"undefined" type cannot be nullable', preventErr)
       }
       if (object === null) {
         return
       }
     }
     if (object === null) {
-      typeAssertError(path, 'unexpected "null" value')
+      typeAssertError(path, 'unexpected "null" value', preventErr)
     }
 
     if (object !== undefined) {
       switch (type) {
         case TypeStrings.Array:
-          assertTypeEqImpl2(path, Array.prototype.constructor, object.constructor, type)
+          assertTypeEqImpl2(path, Array.prototype.constructor, object.constructor, type, preventErr)
           return
         case TypeStrings.Date:
-          assertTypeEqImpl2(path, Date.prototype.constructor, object.constructor, type)
+          assertTypeEqImpl2(path, Date.prototype.constructor, object.constructor, type, preventErr)
           return
         case TypeStrings.RegExp:
-          assertTypeEqImpl2(path, RegExp.prototype.constructor, object.constructor, type)
+          assertTypeEqImpl2(path, RegExp.prototype.constructor, object.constructor, type, preventErr)
           return
         default:
-          // fall through
+        // fall through
       }
     }
 
-    assertTypeEqImpl(path, type, typeof object)
+    assertTypeEqImpl(path, type, typeof object, preventErr)
   } else if (assertionType === TypeStrings.Function) {
     const assertResult = assertion(object)
     if (assertResult !== true) {
-      typeAssertError(path, assertResult)
+      typeAssertError(path, assertResult, preventErr)
     }
   } else if (assertion.constructor === NullableType.prototype.constructor) {
     if (object === null) {
       return
     }
-    typeAssertImpl(path, object, assertion.origin)
+    typeAssertImpl(path, object, assertion.origin, preventErr)
   } else if (assertion.constructor === SumType.prototype.constructor) {
     const failures = []
     for (const type of assertion.types) {
       try {
-        typeAssertImpl(path, object, type)
+        typeAssertImpl(path, object, type, true)
       } catch (error) {
         failures.push(error)
         continue
       }
       return
     }
-    typeAssertError(path, formatSumTypeError(failures))
+    typeAssertError(path, formatSumTypeError(failures), preventErr)
   } else if (assertion.constructor === ChainType.prototype.constructor) {
     // eslint-disable-next-line guard-for-in
     for (const partIdx in assertion.types) {
-      typeAssertImpl(`${path}:<${partIdx}>`, object, assertion.types[partIdx])
+      typeAssertImpl(`${path}:<${partIdx}>`, object, assertion.types[partIdx], preventErr)
     }
   } else if (assertion.constructor === ValueAssertion.prototype.constructor) {
-    assertEquals(`${path}:value`, object, assertion.value)
+    assertEquals(`${path}:value`, object, assertion.value, preventErr)
   } else if (object === undefined) {
-    typeAssertError(path, 'unexpected "undefined" value')
+    typeAssertError(path, 'unexpected "undefined" value', preventErr)
   } else if (object === null) {
-    typeAssertError(path, 'unexpected "null" value')
+    typeAssertError(path, 'unexpected "null" value', preventErr)
   } else if (assertion.constructor === Array.prototype.constructor) {
     assertTypeEqImpl2(path, Array.prototype.constructor, object.constructor, TypeStrings.Array)
     if (assertion.length === 0) {
       // fallthrough
     } else if (assertion.length === 1) {
       for (const [idx, element] of Object.entries(object)) {
-        typeAssertImpl(`${path}[${idx}]`, element, assertion[0])
+        typeAssertImpl(`${path}[${idx}]`, element, assertion[0], preventErr)
       }
     } else {
-      typeAssertError(path, '"array" type assertion should only have one element')
+      typeAssertError(path, '"array" type assertion should only have one element', preventErr)
     }
   } else if (assertionType === TypeStrings.Object
              && assertion.constructor === Object.prototype.constructor) {
     for (const [field, fieldAssertion] of Object.entries(assertion)) {
-      typeAssertImpl(`${path}.${field}`, object[field], fieldAssertion)
+      typeAssertImpl(`${path}.${field}`, object[field], fieldAssertion, preventErr)
     }
   } else {
-    typeAssertError(path, 'invalid assertion')
+    typeAssertError(path, 'invalid assertion', preventErr)
   }
 }
 
-export const typeAssert = (object, assertion) => typeAssertImpl('object', object, assertion)
+export const typeAssert = (object, assertion) => typeAssertImpl('object', object, assertion, false)
 
 export const NullableType = (function () {
   function NullableType(origin) {
@@ -198,7 +207,7 @@ export const enableChainAPI = methodNames => {
   }
 
   const checkChainNotEndedByValueAssertion = types => {
-    if (types[this.types.length - 1].constructor === ValueAssertion.prototype.constructor) {
+    if (types[types.length - 1].constructor === ValueAssertion.prototype.constructor) {
       typeAssertError('<onbuild> ChainType.prototype.orNull', `should append any assertion after ${assertValueName}`)
     }
   }
