@@ -34,7 +34,7 @@ typeAssert({
 ```
 
  - Easily extend the functionalities
-```
+```js
 typeAssert(5, 'number'.assertValue(5))
 typeAssert([1, 2, 3], ['number'].chainWith(x => x.length >= 2))
 ```
