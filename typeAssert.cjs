@@ -132,7 +132,7 @@ const typeAssertImpl = (path, object, assertion, preventErr) => {
       typeAssertImpl(`${path}:<${partIdx}>`, object, assertion.types[partIdx], preventErr)
     }
   } else if (assertion.constructor === ValueAssertion.prototype.constructor) {
-    assertEquals(`${path}:value`, object, assertion.value, preventErr)
+    assertEquals(`${path}:value`, assertion.value, object, preventErr)
   } else if (object === undefined) {
     typeAssertError(path, 'unexpected "undefined" value', preventErr)
   } else if (object === null) {
