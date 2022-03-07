@@ -79,7 +79,7 @@ const typeAssertImpl = (path, object, assertion, preventErr) => {
       if (type === TypeStrings.Undefined) {
         typeAssertError(path, '"undefined" type cannot be nullable', preventErr)
       }
-      if (object === null) {
+      if (object === null || object === undefined) {
         return
       }
     }
@@ -110,7 +110,7 @@ const typeAssertImpl = (path, object, assertion, preventErr) => {
       typeAssertError(path, assertResult, preventErr)
     }
   } else if (assertion.constructor === NullableType.prototype.constructor) {
-    if (object === null) {
+    if (object === null || object === undefined) {
       return
     }
     typeAssertImpl(path, object, assertion.origin, preventErr)
