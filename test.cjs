@@ -49,9 +49,6 @@ const nullableAssertion = { x: 'number', y: 'function' }.orNull()
 typeAssert({ x: 114, y: () => 514 }, nullableAssertion)
 typeAssert(null, nullableAssertion)
 
-// `undefined` is not considered a kind of `null` till now.
-expectFailure(() => typeAssert(undefined, nullableAssertion))
-
 // cannot nest nullable modification
 expectFailure(() => 'number?'.orNull())
 expectFailure(() => { return { x: 'string' }.orNull().orNull()} )
