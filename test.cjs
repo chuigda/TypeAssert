@@ -87,9 +87,23 @@ typeAssert({
   ]
 }, compoundAssertion)
 
-const nonNegativeAssertion = 'number'.chainWith(x => x > 0 || 'no negative numbers')
+const nonNegativeAssertion = 'number'
+  .chainWith(x => x > 0 || 'no negative numbers')
+  .chainWith(x => x <= 100 || 'no greater than 100')
 typeAssert(5, nonNegativeAssertion)
 expectFailure(() => typeAssert(-1, nonNegativeAssertion))
+expectFailure(() => typeAssert(101, nonNegativeAssertion))
+
+const nonNegativeAssertion2 = 'number?'
+  .chainWith(x => x > 0 || 'no negative numbers')
+  .chainWith(x => x <= 100 || 'no greater than 100')
+
+typeAssert(5, nonNegativeAssertion2)
+typeAssert(null, nonNegativeAssertion2)
+typeAssert(undefined, nonNegativeAssertion2)
+expectFailure(() => typeAssert('114514', nonNegativeAssertion2))
+expectFailure(() => typeAssert(-1, nonNegativeAssertion2))
+expectFailure(() => typeAssert(101, nonNegativeAssertion2))
 
 typeAssert(5, 'number'.assertValue(5))
 expectFailure(() => typeAssert(5, 'number'.assertValue(114514)))

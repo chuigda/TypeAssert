@@ -304,7 +304,34 @@ const enableChainAPI = methodNames => {
     configurable: false,
     writable: false,
     value(that) {
-      return (new ChainType([this]))[chainWithName](that)
+      let self = this
+      let nullable = false
+      if (self.constructor === NullableType.prototype.constructor) {
+        nullable = true
+        self = self.origin
+        return new NullableType(self[chainWithName](that))
+      }
+      return (new ChainType([self]))[chainWithName](that)
+    }
+  })
+
+  Object.defineProperty(String.prototype, chainWithName, {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value(that) {
+      let nullable = false
+      let self = `${this}`
+      if (self.endsWith('?')) {
+        nullable = true
+        self = self.slice(0, -1)
+      }
+
+      let ret = (new ChainType([self]))[chainWithName](that)
+      if (nullable) {
+        ret = new NullableType(ret)
+      }
+      return ret
     }
   })
 
