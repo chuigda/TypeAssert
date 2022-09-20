@@ -1,3 +1,5 @@
+// noinspection JSUnresolvedFunction
+
 import { typeAssert, enableChainAPI, preventErrTrace } from './typeAssert.js'
 
 preventErrTrace(true)
@@ -85,10 +87,22 @@ typeAssert({
   ]
 }, compoundAssertion)
 
-typeAssert(5, 'number'.chainWith(x => x > 0 ? true : 'no negative numbers'))
-expectFailure(() => typeAssert(-1, 'number'.chainWith(x => x > 0 ? true : 'no negative numbers')))
+const nonNegativeAssertion = 'number'.chainWith(x => x > 0 || 'no negative numbers')
+typeAssert(5, nonNegativeAssertion)
+expectFailure(() => typeAssert(-1, nonNegativeAssertion))
 
 typeAssert(5, 'number'.assertValue(5))
 expectFailure(() => typeAssert(5, 'number'.assertValue(114514)))
+
+const objectValueAssertion = {}.assertObjectValue('number')
+typeAssert({ a: 114, b: 514 }, objectValueAssertion)
+expectFailure(() => typeAssert({ a: 114, b: '514' }, objectValueAssertion))
+
+const objectValueAssertion2 = 'object?'.assertObjectValue('number'.chainWith(x => x >= 100 || 'no less than 100'))
+typeAssert({ a: 114, b: 514 }, objectValueAssertion2)
+typeAssert(null, objectValueAssertion2)
+typeAssert(undefined, objectValueAssertion2)
+expectFailure(() => typeAssert({ a: 114, b: '514' }, objectValueAssertion2))
+expectFailure(() => typeAssert({ a: 114, b: 90 }, objectValueAssertion2))
 
 console.info('mission accomplished')
