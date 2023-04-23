@@ -1,4 +1,4 @@
-const { NullableType, SumType, ChainType, ObjectValueAssertion } = require('./typeAssert.cjs')
+const { NullableType, SumType, ChainType, ObjectValueAssertion, ValueAssertion } = require('./typeAssert.cjs')
 
 const RefTy = (function () {
     function RefTy(typeName) {
@@ -19,24 +19,25 @@ const resolveTypeRef = (context, assertion) => {
     if (assertion instanceof RefTy) {
         return context[assertion.typeName]
     } else if (assertion instanceof NullableType) {
-        return new NullableType(resolveTypeRef(context, assertion.origin))
+        assertion.origin = resolveTypeRef(context, assertion.origin)
     } else if (assertion instanceof SumType) {
-        return new SumType(assertion.types.map(type => resolveTypeRef(context, type)))
+        assertion.types = assertion.types.map(type => resolveTypeRef(context, type))
     } else if (assertion instanceof ChainType) {
-        return new ChainType(assertion.types.map(type => resolveTypeRef(context, type)))
+        assertion.types = assertion.types.map(type => resolveTypeRef(context, type))
     } else if (assertion instanceof ObjectValueAssertion) {
-        return new ObjectValueAssertion(resolveTypeRef(context, assertion.valueAssertion))
+        assertion.valueAssertion = resolveTypeRef(context, assertion.valueAssertion)
+    } else if (assertion instanceof ValueAssertion) {
     } else if (Array.isArray(assertion)) {
-        return assertion.map(type => resolveTypeRef(context, type))
-    } else if (typeof assertion === 'object') {
-        const result = {}
-        for (const key in assertion) {
-            result[key] = resolveTypeRef(context, assertion[key])
+        if (assertion.length === 1) {
+            assertion[0] = resolveTypeRef(context, assertion[0])
         }
-        return result
-    } else {
-        return assertion
+    } else if (typeof assertion === 'object') {
+        for (const key in assertion) {
+            assertion[key] = resolveTypeRef(context, assertion[key])
+        }
     }
+
+    return assertion
 }
 
 module.exports = {
