@@ -28,8 +28,36 @@ const typeAssertError = (path, message) => {
   throw new Error(errMsg)
 }
 
+const deepEqual = (a, b) => {
+  if (a === b) {
+    return true
+  }
+  if (typeof a !== TypeStrings.Object || typeof b !== TypeStrings.Object) {
+    return false
+  }
+  if (a === null || b === null) {
+    return false
+  }
+  const aIsArray = a.constructor === Array.prototype.constructor
+  const bIsArray = b.constructor === Array.prototype.constructor
+  if (aIsArray !== bIsArray) {
+    return false
+  }
+  const aKeys = Object.keys(a)
+  const bKeys = Object.keys(b)
+  if (aKeys.length !== bKeys.length) {
+    return false
+  }
+  for (const key of aKeys) {
+    if (!bKeys.includes(key) || !deepEqual(a[key], b[key])) {
+      return false
+    }
+  }
+  return true
+}
+
 const assertEquals = (path, expected, got) => {
-  if (expected !== got) {
+  if (!deepEqual(expected, got)) {
     typeAssertError(path, `expected value "${expected}", got "${got}"`)
   }
 }
